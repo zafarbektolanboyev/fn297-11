@@ -1,5 +1,5 @@
 import React from "react";
-import { Route, Routes, useNavigate } from "react-router-dom";
+import { Route, Routes, Navigate, useNavigate } from "react-router-dom";
 import Home from "./pages/Home";
 import ArticleDetail from "./pages/ArticleDetail";
 import CreatArticle from "./pages/CreatArticle";
@@ -7,30 +7,44 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 
 function App() {
-  const navigate = useNavigate("");
   const token = localStorage.getItem("access_token");
 
-  function ProtectedRoute({children}) {
+  function ProtectedRoute({ children }) {
     if (!token) {
-      return navigate("/login");
+      return <Navigate to="/login" replace />;
     }
-    return children
+    return children;
   }
 
   return (
     <div>
       <Routes>
-        <Route path="/" element={<ProtectedRoute><Home></Home></ProtectedRoute>}></Route>
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/articledetails/:id"
-          element={<ProtectedRoute><ArticleDetail></ArticleDetail></ProtectedRoute>}
-        ></Route>
+          element={
+            <ProtectedRoute>
+              <ArticleDetail />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/creatarticle"
-          element={<ProtectedRoute><CreatArticle></CreatArticle></ProtectedRoute>}
-        ></Route>
-        <Route path="/login" element={<Login></Login>}></Route>
-        <Route path="/register" element={<Register></Register>}></Route>
+          element={
+            <ProtectedRoute>
+              <CreatArticle />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
       </Routes>
     </div>
   );
