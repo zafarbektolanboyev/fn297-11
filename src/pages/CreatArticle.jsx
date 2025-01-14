@@ -56,18 +56,33 @@ function CreatArticle() {
           </button>
         </form>
         <div className='mt-5 flex flex-row flex-wrap flex-2 justify-between mx-auto gap-[30px]'>
-          {articles.length === 0 ? (
-            <p className='text-center text-xl'>No articles yet</p>
-          ) : (
+        {articles.length > 0 ? (
             articles.map((article, index) => (
               <div
                 key={index}
-                className='border p-4 w-[500px] rounded-md mb-3 bg-gray-100'
+                className="w-[400px] cursor-pointer p-5 bg-gray-200 rounded-md"
+                // onClick={() => handleCardClick(article)} 
               >
-                <h3 className='text-2xl font-bold'>{article.title}</h3>
-                <p className='text-lg'>{article.desc}</p>
+                <h1 className="text-xl">Id: {article.id}</h1>
+                <h1 className="text-3xl font-bold">Title: {article.title}</h1>
+                
+                <div>
+                  <button
+                    className="bg-red-600 py-2 px-5 rounded-md text-white text-xl"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpen(article);
+                    }}
+                  >
+                    Edit
+                  </button>
+                
+                
+                </div>
               </div>
             ))
+          ) : (
+            <p className="text-xl text-gray-500">Hozircha hech qanday ma'lumot qushmadiz</p>
           )}
         </div>
       </div>

@@ -1,42 +1,59 @@
 import React, { useEffect, useState } from "react";
 import Header from "../components/Header";
-import circlePlus from "../assets/circlePlus.svg";
 import { useNavigate } from "react-router-dom";
 
 function Home() {
   const [articles, setArticles] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [currentArticle, setCurrentArticle] = useState(null);
-  const [editedTitle, setEditedTitle] = useState("");
-  const [editedDesc, setEditedDesc] = useState("");
-  const [comments, setComments] = useState({});
-
+  const [editedTitle, setEditedTitle] = useState('');
+  const [editedDesc, setEditedDesc] = useState('');
+  const [newComment, setNewComment] = useState('');
   const navigate = useNavigate();
+
   useEffect(() => {
-    const savedArticles = JSON.parse(localStorage.getItem("articles")) || [];
+    const savedArticles = JSON.parse(localStorage.getItem('articles')) || [];
     setArticles(savedArticles);
   }, []);
-  function handleComment(articleId) {
-    if (!comments[articleId]?.trim()) return;
 
+  function handleOpen(article) {
+    setCurrentArticle(article);
+    setEditedTitle(article.title);
+    setEditedDesc(article.desc);
+    setIsOpen(true);
+  }
+
+  function handleClose() {
+    setIsOpen(false);
+    setCurrentArticle(null);
+    setEditedTitle('');
+    setEditedDesc('');
+  }
+
+  function handleSave() {
+    const updatedArticles = articles.map((article) =>
+      article.id === currentArticle.id
+        ? { ...article, title: editedTitle, desc: editedDesc }
+        : article
+    );
+    setArticles(updatedArticles);
+    localStorage.setItem('articles', JSON.stringify(updatedArticles));
+    handleClose();
+  }
+
+  function handleAddComment(articleId) {
     const updatedArticles = articles.map((article) => {
       if (article.id === articleId) {
-        const updatedComments = article.comments || [];
-        return {
-          ...article,
-          comments: [...updatedComments, comments[articleId]],
-        };
+        const updatedComments = article.comments ? [...article.comments, newComment] : [newComment];
+        return { ...article, comments: updatedComments };
       }
       return article;
     });
-
     setArticles(updatedArticles);
-    localStorage.setItem("articles", JSON.stringify(updatedArticles));
-    setComments({ ...comments, [articleId]: "" });
+    localStorage.setItem('articles', JSON.stringify(updatedArticles));
+    setNewComment('');
   }
-  function handleCommentChange(articleId, value) {
-    setComments({ ...comments, [articleId]: value });
-  }
+
   return (
     <div>
       <Header></Header>
@@ -50,62 +67,88 @@ function Home() {
               >
                 <h1 className="text-xl">Id: {article.id}</h1>
                 <h1 className="text-3xl font-bold">Title: {article.title}</h1>
-                <input
-                  type="text"
-                  placeholder="Enter comment"
-                  value={comments[article.id] || ''}
-                  onChange={(e) => handleCommentChange(article.id, e.target.value)}
-                  className="py-2 px-3 mt-3 mb-3 bg-gray-300 rounded-md"
-                />
-                {article.comments && article.comments.length > 0 && (
-                  <div className="p-2 mt-3 rounded-md">
-                    <h3 className="font-bold">Comments:</h3>
-                    {article.comments.map((cmt, idx) => (
-                      <li key={idx} className="text-gray-700">{cmt}</li>
-                    ))}
-                  </div>
-                )}
-                <div className="flex flex-row gap-5">
+                <div>
                   <button
-                    className="bg-green-400 py-2 px-5 rounded-md text-white text-xl"
+                    className="bg-red-600 py-2 px-5 rounded-md text-white text-xl"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setCurrentArticle(article);
-                      setEditedTitle(article.title);
-                      setEditedDesc(article.desc);
-                      setIsOpen(true);
+                      handleOpen(article);
                     }}
                   >
                     Edit
                   </button>
-                  <button
-                  className="bg-green-400 py-2 px-5 rounded-md text-white text-xl"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleComment(article.id);
-                  }}
-                >
-                  Add Comment
-                </button>
+                </div>
+
+                {/* Comments Section */}
+                <div className="mt-3">
+                  <h4 className="text-lg font-semibold">Comments</h4>
+                  {article.comments && article.comments.length === 0 ? (
+                    <p className="text-sm italic">No comments</p>
+                  ) : (
+                    <ul className="list-disc list-inside">
+                      {article.comments && article.comments.map((comment, id) => (
+                        <li key={id} className="text-sm">
+                          {comment}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <div className="mt-2">
+                    <input
+                      type="text"
+                      className="border p-2 rounded-md w-full"
+                      placeholder="Add a comment"
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                    />
+                    <button
+                      className="bg-blue-500 text-white px-4 py-2 mt-2 rounded-md"
+                      onClick={() => handleAddComment(article.id)}
+                    >
+                      Add Comment
+                    </button>
+                  </div>
                 </div>
               </div>
             ))
           ) : (
-            <p className="text-xl text-gray-500">Hozircha maqola yo'q.</p>
+            <p className="text-xl text-gray-500">Hozircha hech qanday ma'lumot qushmadiz</p>
           )}
         </div>
-        <div className="flex flex-row mx-auto items-center">
-          <h1 className="text-2xl mx-auto">Maqola yaratish uchun bosing</h1>
-          <img
-            src={circlePlus}
-            alt=""
-            width={50}
-            height={50}
-            className="mx-auto cursor-pointer"
-            onClick={() => navigate('/creatarticle')}
-          />
-        </div>
       </div>
+
+      {isOpen && (
+        <div className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg">Edit article</h3>
+            <form className="flex-col mt-5 flex">
+              <input
+                type="text"
+                className="w-full border bg-gray-300 p-3 rounded-md mb-2 text-white text-xl"
+                placeholder="Enter title"
+                value={editedTitle}
+                onChange={(e) => setEditedTitle(e.target.value)}
+              />
+              <input
+                type="text"
+                className="w-full border bg-gray-300 p-3 rounded-md mb-2 text-white text-xl"
+                placeholder="Enter description"
+                value={editedDesc}
+                onChange={(e) => setEditedDesc(e.target.value)}
+              />
+            </form>
+
+            <div className="modal-action">
+              <button onClick={handleSave} className="btn bg-blue-500 text-white">
+                Save
+              </button>
+              <button onClick={handleClose} className="btn bg-red-500 text-white">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
